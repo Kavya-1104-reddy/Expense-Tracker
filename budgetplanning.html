@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Budget Planning - Expense Tracker</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f9fafc;
+      color: #333;
+    }
+
+    /* Caption Banner at Top */
+    .caption {
+      background: linear-gradient(90deg, #43cea2, #185a9d);
+      color: white;
+      text-align: center;
+      padding: 25px;
+      font-size: 1.6em;
+      font-weight: bold;
+      letter-spacing: 1px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+
+    /* Navbar */
+    nav {
+      background-color: #333;
+      padding: 15px;
+      text-align: center;
+    }
+    nav ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: inline-flex;
+      gap: 20px;
+    }
+    nav ul li a {
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+      padding: 10px 18px;
+      border-radius: 6px;
+      background-color: #444;
+      transition: background-color 0.3s, transform 0.2s;
+    }
+    nav ul li a:hover {
+      background-color: #555;
+      transform: scale(1.05);
+    }
+
+    /* Category Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 25px;
+      margin: 40px;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      text-align: center;
+      padding: 20px;
+      transition: transform 0.3s;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+    }
+    .card img {
+      width: 90px;
+      height: 90px;
+      margin-bottom: 10px;
+    }
+    .card h3 {
+      margin: 10px 0;
+      font-size: 1.2em;
+    }
+    .card input {
+      width: 80%;
+      padding: 8px;
+      margin-top: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    /* Total Budget */
+    .total {
+      text-align: center;
+      margin: 30px;
+      font-size: 1.4em;
+      font-weight: bold;
+      color: #185a9d;
+    }
+
+    /* Chart */
+    .chart {
+      text-align: center;
+      margin: 40px auto;
+      padding: 20px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      width: 80%;
+    }
+    .chart h2 {
+      margin-bottom: 20px;
+    }
+    canvas {
+      max-width: 500px;
+      margin: auto;
+    }
+  </style>
+</head>
+<body>
+  <!-- Caption Banner at Top -->
+  <div class="caption">
+    "Plan Your Budget Smartly — Control Your Expenses, Grow Your Savings"
+  </div>
+
+  <!-- Navigation Bar -->
+  <nav>
+    <ul>
+      <li><a href="homepage.html">Home</a></li>
+      <li><a href="addexpense.html">Add Expense</a></li>
+      <li><a href="viewexpense.html">View Expenses</a></li>
+      <li><a href="summary.html">Summary</a></li>
+      <li><a href="#" onclick="logout()">Logout</a></li>
+    </ul>
+  </nav>
+
+  <!-- Category Grid -->
+  <div class="grid">
+    <div class="card">
+      <img src="https://img.icons8.com/color/96/meal.png" alt="Food">
+      <h3>Food</h3>
+      <input type="number" class="budget-input" data-category="Food" placeholder="Enter budget (₹)">
+    </div>
+    <div class="card">
+      <img src="https://img.icons8.com/color/96/car.png" alt="Transport">
+      <h3>Transport</h3>
+      <input type="number" class="budget-input" data-category="Transport" placeholder="Enter budget (₹)">
+    </div>
+    <div class="card">
+      <img src="https://img.icons8.com/color/96/home.png" alt="Rent">
+      <h3>Rent</h3>
+      <input type="number" class="budget-input" data-category="Rent" placeholder="Enter budget (₹)">
+    </div>
+    <div class="card">
+      <img src="https://img.icons8.com/color/96/money-bag.png" alt="Savings">
+      <h3>Savings</h3>
+      <input type="number" class="budget-input" data-category="Savings" placeholder="Enter budget (₹)">
+    </div>
+    <div class="card">
+      <img src="https://img.icons8.com/color/96/movie-projector.png" alt="Entertainment">
+      <h3>Entertainment</h3>
+      <input type="number" class="budget-input" data-category="Entertainment" placeholder="Enter budget (₹)">
+    </div>
+    <div class="card">
+      <img src="https://img.icons8.com/color/96/hospital-room.png" alt="Healthcare">
+      <h3>Healthcare</h3>
+      <input type="number" class="budget-input" data-category="Healthcare" placeholder="Enter budget (₹)">
+    </div>
+    <div class="card">
+      <img src="https://img.icons8.com/color/96/books.png" alt="Education">
+      <h3>Education</h3>
+      <input type="number" class="budget-input" data-category="Education" placeholder="Enter budget (₹)">
+    </div>
+    <div class="card">
+      <img src="https://img.icons8.com/color/96/shopping-cart.png" alt="Miscellaneous">
+      <h3>Miscellaneous</h3>
+      <input type="number" class="budget-input" data-category="Miscellaneous" placeholder="Enter budget (₹)">
+    </div>
+  </div>
+
+  <!-- Total Budget -->
+  <div class="total" id="totalBudget">
+    Total Planned Budget: ₹0
+  </div>
+  <div style="text-align:center;">
+    <button onclick="saveBudget()">Save Budget</button>
+  </div>
+
+  <!-- Chart -->
+  <div class="chart">
+    <h2>Budget Distribution</h2>
+    <canvas id="budgetChart"></canvas>
+  </div>
+
+  <script>
+    if (localStorage.getItem("loggedIn") !== "true") {
+      window.location.href = "login.html";
+    }
+
+    const inputs = document.querySelectorAll('.budget-input');
+    const totalBudgetEl = document.getElementById('totalBudget');
+
+    const ctx = document.getElementById('budgetChart').getContext('2d');
+    const budgetChart = new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: [],
+        datasets: [{
+          data: [],
+          backgroundColor: [
+            '#4facfe','#43cea2','#ff9a9e','#fbc2eb',
+            '#a1c4fd','#f6d365','#96e6a1','#f093fb'
+          ]
+        }]
+      }
+    });
+
+    function updateBudget() {
+      let total = 0;
+      const labels = [];
+      const data = [];
+
+      inputs.forEach(input => {
+        const value = parseFloat(input.value) || 0;
+        const category = input.dataset.category;
+        if (value > 0) {
+          labels.push(category);
+          data.push(value);
+        }
+        total += value;
+      });
+
+      totalBudgetEl.textContent = "Total Planned Budget: ₹" + total;
+
+      budgetChart.data.labels = labels;
+      budgetChart.data.datasets[0].data = data;
+      budgetChart.update();
+    }
+
+    inputs.forEach(input => {
+      input.addEventListener('input', updateBudget);
+    });
+function saveBudget() {
+  const budgetData = {};
+  inputs.forEach(input => {
+    const category = input.dataset.category;
+    const value = parseFloat(input.value) || 0;
+    budgetData[category] = value;
+  });
+
+  // Save data
+  localStorage.setItem("budgetPlan", JSON.stringify(budgetData));
+
+  alert("Budget saved successfully!");
+
+  // 🔥 Clear all inputs
+  inputs.forEach(input => {
+    input.value = "";
+  });
+
+  // 🔥 Reset total
+  totalBudgetEl.textContent = "Total Planned Budget: ₹0";
+
+  // 🔥 Reset chart
+  budgetChart.data.labels = [];
+  budgetChart.data.datasets[0].data = [];
+  budgetChart.update();
+}
+
+    function loadBudget() {
+      const savedData = localStorage.getItem("budgetPlan");
+      if (savedData) {
+        const budgetData = JSON.parse(savedData);
+        inputs.forEach(input => {
+          const category = input.dataset.category;
+          if (budgetData[category] !== undefined) {
+            input.value = budgetData[category];
+          }
+        });
+        updateBudget();
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem("loggedIn");
+      localStorage.removeItem("budgetPlan");
+      window.location.href = "login.html";
+    }
+
+    window.onload = function() {
+  // Clear saved budget on refresh
+  localStorage.removeItem("budgetPlan");
+
+  // Reset inputs and chart
+  inputs.forEach(input => {
+    input.value = "";
+  });
+  totalBudgetEl.textContent = "Total Planned Budget: ₹0";
+  budgetChart.data.labels = [];
+  budgetChart.data.datasets[0].data = [];
+  budgetChart.update();
+};
+  </script>
+</body>
+</html>
+ 

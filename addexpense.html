@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Add Expense</title>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f4f4f9;
+}
+
+/* Caption Banner */
+.caption {
+  background: linear-gradient(90deg, #fe8f4f, #00f2fe, #fe8f4f);
+  color: white;
+  text-align: center;
+  padding: 25px;
+  font-size: 1.8em;
+  font-weight: bold;
+  letter-spacing: 1px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+/* Navbar */
+nav {
+  background-color: #333;
+  padding: 15px;
+  text-align: center;
+}
+nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: inline-flex;
+  gap: 20px;
+}
+nav ul li a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  padding: 10px 18px;
+  border-radius: 6px;
+  background-color: #444;
+}
+nav ul li a:hover {
+  background-color: #555;
+}
+
+/* Card Style */
+.container {
+  width: 320px;
+  margin: 50px auto;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  padding: 20px;
+  text-align: center;
+}
+
+input, select, button {
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+button {
+  background: green;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: 0.2s;
+}
+button:hover {
+  transform: scale(1.03);
+}
+
+.cancel {
+  background: red;
+}
+
+/* Modal */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+  background: white;
+  width: 250px;
+  margin: 120px auto;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+}
+</style>
+
+</head>
+<body>
+
+<div class="caption">
+  Add Your Expense
+</div>
+
+<nav>
+  <ul>
+    <li><a href="homepage.html">Home</a></li>
+    <li><a href="budgetplanning.html">Budget Planning</a></li>
+    <li><a href="addexpense.html">Add Expense</a></li>
+    <li><a href="viewexpense.html">View Expenses</a></li>
+    <li><a href="summary.html">Summary</a></li>
+    <li><a href="#" onclick="logout()">Logout</a></li>
+  </ul>
+</nav>
+
+<div class="container">
+  <h2>💰 Add Expense</h2>
+
+  <select id="category">
+    <option>Food</option>
+    <option>Transport</option>
+    <option>Rent</option>
+    <option>Savings</option>
+    <option>Entertainment</option>
+    <option>Healthcare</option>
+    <option>Education</option>
+    <option>Miscellaneous</option>
+  </select>
+
+  <input type="number" id="amount" placeholder="Enter Amount">
+
+  <input type="date" id="date">
+
+  <button id="openTime">Select Time</button>
+
+  <button id="addBtn">+ Add Expense</button>
+
+  <h3 id="result"></h3>
+
+  <!-- ✅ ADDED TABLE -->
+  <table id="expenseTable" border="1" style="width:100%; margin-top:15px; border-collapse:collapse;">
+    <tr>
+      <th>Category</th>
+      <th>Amount (₹)</th>
+      <th>Date</th>
+      <th>Time</th>
+    </tr>
+  </table>
+</div>
+
+<!-- TIME MODAL -->
+<div id="timeModal" class="modal">
+  <div class="modal-content">
+    <h3>Set Time</h3>
+
+    <select id="hour"></select>
+    <select id="minute"></select>
+    <select id="ampm">
+      <option>AM</option>
+      <option>PM</option>
+    </select>
+
+    <button id="setTime">Set Time</button>
+    <button id="cancelTime" class="cancel">Cancel</button>
+  </div>
+</div>
+
+<script>
+let selectedTime = "";
+
+// Populate dropdowns
+const hour = document.getElementById("hour");
+const minute = document.getElementById("minute");
+
+for (let i = 1; i <= 12; i++) {
+  let opt = document.createElement("option");
+  opt.text = i;
+  hour.add(opt);
+}
+
+for (let i = 0; i < 60; i++) {
+  let opt = document.createElement("option");
+  opt.text = i;
+  minute.add(opt);
+}
+
+// Open modal
+document.getElementById("openTime").onclick = () => {
+  document.getElementById("timeModal").style.display = "block";
+};
+
+// Cancel modal
+document.getElementById("cancelTime").onclick = () => {
+  document.getElementById("timeModal").style.display = "none";
+};
+
+// Set time
+document.getElementById("setTime").onclick = () => {
+  let h = hour.value;
+  let m = minute.value;
+  let ap = document.getElementById("ampm").value;
+
+  selectedTime = h + ":" + m + " " + ap;
+  document.getElementById("openTime").innerText = selectedTime;
+
+  document.getElementById("timeModal").style.display = "none";
+};
+
+// Add Expense
+document.getElementById("addBtn").onclick = () => {
+  let cat = document.getElementById("category").value;
+  let amt = document.getElementById("amount").value;
+  let date = document.getElementById("date").value;
+
+  if (!cat || !amt || !date || !selectedTime) {
+    alert("Please fill all fields!");
+    return;
+  }
+
+  // ✅ USER-SPECIFIC STORAGE
+  let currentUser = localStorage.getItem("currentUser") || "guest";
+  let expensesKey = "expenses_" + currentUser;
+
+  let budgetData = JSON.parse(localStorage.getItem("budgetPlan")) || {};
+  let expenses = JSON.parse(localStorage.getItem(expensesKey)) || [];
+
+  let totalSpent = 0;
+  expenses.forEach(exp => {
+    if (exp.category === cat) {
+      totalSpent += parseFloat(exp.amount);
+    }
+  });
+
+  totalSpent += parseFloat(amt);
+
+  let categoryBudget = budgetData[cat] || 0;
+
+  if (categoryBudget > 0 && totalSpent > categoryBudget) {
+    alert("⚠️ You have crossed your budget for " + cat + "!");
+  }
+
+  // ✅ ADDED STORAGE + TABLE LOGIC
+  expenses.push({
+    category: cat,
+    amount: amt,
+    date: date,
+    time: selectedTime
+  });
+
+  localStorage.setItem(expensesKey, JSON.stringify(expenses));
+
+  addRow(cat, amt, date, selectedTime);
+};
+
+// ✅ FUNCTION
+function addRow(cat, amt, date, time) {
+  let table = document.getElementById("expenseTable");
+
+  // 🔥 Check if category already exists
+  for (let i = 1; i < table.rows.length; i++) {
+    let row = table.rows[i];
+    let existingCategory = row.cells[0].innerText;
+
+    if (existingCategory === cat) {
+      // 🔥 Update amount
+      let existingAmount = parseFloat(row.cells[1].innerText.replace("₹", ""));
+      let newAmount = existingAmount + parseFloat(amt);
+
+      row.cells[1].innerText = "₹" + newAmount;
+
+      // 🔥 Update latest date & time
+      row.cells[2].innerText = date;
+      row.cells[3].innerText = time;
+
+      return; // stop (no new row)
+    }
+  }
+
+  // 🔥 If not found → create new row
+  let row = table.insertRow();
+  row.insertCell(0).innerText = cat;
+  row.insertCell(1).innerText = "₹" + amt;
+  row.insertCell(2).innerText = date;
+  row.insertCell(3).innerText = time;
+}
+
+// ✅ LOAD DATA ON REFRESH (USER-SPECIFIC)
+window.onload = () => {
+  let currentUser = localStorage.getItem("currentUser") || "guest";
+  let expensesKey = "expenses_" + currentUser;
+
+  let expenses = JSON.parse(localStorage.getItem(expensesKey)) || [];
+
+  expenses.forEach(exp => {
+    addRow(exp.category, exp.amount, exp.date, exp.time);
+  });
+};
+
+function logout() {
+  localStorage.removeItem("loggedIn");
+  localStorage.removeItem("currentUser");
+  window.location.href = "login.html";
+}
+</script>
+
+</body>
+</html>
